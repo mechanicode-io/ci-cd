@@ -36,6 +36,11 @@ jobs:
           private-key: ${{ secrets.GIT_APP_OP_PRIVATE_KEY }}
           owner: ${{ vars.GIT_APP_OP_OWNER }}
 
+      - name: Configure git user
+        run: |
+          git config user.name "${{ vars.GIT_APP_OP_NAME }}[bot]"
+          git config user.email "${{ secrets.GIT_APP_OP_APP_ID }}+${{ vars.GIT_APP_OP_NAME }}[bot]@users.noreply.github.com"
+
       - name: Release
         id: semantic
         env:
