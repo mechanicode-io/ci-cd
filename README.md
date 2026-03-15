@@ -11,16 +11,16 @@ flowchart TD
     B --> C[tagging-check.yml]
     C --> D[semantic-release dry-run]
     D -->|no release triggered| E[No comment posted]
-    D -->|release detected| F[Org bot posts\nRelease Management Report\non PR]
+    D -->|release detected| F[Org bot posts<br/>Release Management Report<br/>on PR]
 
     B --> G{Merge to main?}
     G -->|No| B
     G -->|Yes| H[release.yml]
 
     H --> I[semantic-release]
-    I --> J[Org bot commits\nCHANGELOG.md + package.json\nand creates git tag]
+    I --> J[Org bot commits<br/>CHANGELOG.md + package.json<br/>and creates git tag]
     J --> K[Build Dockerfile]
-    K --> L[Push to ghcr.io/org/ci-cd\n:version + :latest]
+    K --> L[Push to ghcr.io/org/ci-cd<br/>:version + :latest]
 ```
 
 ## Release Management
