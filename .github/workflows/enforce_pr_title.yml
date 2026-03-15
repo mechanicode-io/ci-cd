@@ -1,10 +1,10 @@
-name: Validate PR Title
+name: Ensure PR Title adheres to Conventional Commits
 on:
   pull_request:
     types: [opened, edited, synchronize, reopened]
 
 jobs:
-  validate:
+  validate-title:
     runs-on: ubuntu-latest
     steps:
       - name: Check conventional commit format
