@@ -1,3 +1,10 @@
+## [1.0.1](https://github.com/mechanicode-io/ci-cd/compare/1.0.0...1.0.1) (2026-03-15)
+
+
+### Bug Fixes
+
+* renaming release action ([#4](https://github.com/mechanicode-io/ci-cd/issues/4)) ([4391b2e](https://github.com/mechanicode-io/ci-cd/commit/4391b2ed6da116955f656a57c599e2fade5a4b3f))
+
 # 1.0.0 (2026-03-15)
 
 
