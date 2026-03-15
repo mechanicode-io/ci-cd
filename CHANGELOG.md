@@ -1,3 +1,10 @@
+## [1.0.2](https://github.com/mechanicode-io/ci-cd/compare/1.0.1...1.0.2) (2026-03-15)
+
+
+### Bug Fixes
+
+* This repo only allows squash commits, so the title must adhere to conventional commits before being allowed to merge ([1217cfe](https://github.com/mechanicode-io/ci-cd/commit/1217cfee146fd3650f967f6d277f725f39904420))
+
 ## [1.0.1](https://github.com/mechanicode-io/ci-cd/compare/1.0.0...1.0.1) (2026-03-15)
 
 
