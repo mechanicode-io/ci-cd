@@ -28,3 +28,21 @@ When making changes that affect the helm chart, use these prefixes:
 pip install -r requirements.txt
 pre-commit install --hook-type commit-msg
 ```
+
+Example of failure message when not following conventional commits
+
+```log
+[WARNING] Unstaged files detected.
+[INFO] Stashing unstaged files to /Users/mini/.cache/pre-commit/patch1773584714-14376.
+Conventional Commit......................................................Failed
+- hook id: conventional-pre-commit
+- exit code: 1
+
+[Bad commit message] >> test
+Your commit message does not follow Conventional Commits formatting
+https://www.conventionalcommits.org/
+
+Use the --verbose arg for more information
+
+[INFO] Restored changes from /Users/mini/.cache/pre-commit/patch1773584714-14376.
+```
