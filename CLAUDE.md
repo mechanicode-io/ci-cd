@@ -7,7 +7,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ```sh
 pip install -r requirements.txt
 pre-commit install --hook-type commit-msg
-uvicorn main:app --reload
+uvicorn hello-world.main:app --reload
 ```
 
 ## Commit Conventions
@@ -15,7 +15,7 @@ uvicorn main:app --reload
 All commits must follow [Conventional Commits](https://www.conventionalcommits.org/). This is enforced locally via `.pre-commit-config.yaml` and validated in CI via the `tagging-check` workflow.
 
 | Prefix | SemVer bump |
-|--------|-------------|
+| ------ | ----------- |
 | `fix:` | patch |
 | `feat:` | minor |
 | `feat!:` / `fix!:` or footer `BREAKING CHANGE:` | major |
