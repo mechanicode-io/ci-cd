@@ -1,0 +1,244 @@
+name: PR - Confirm Release Tagging Conventions
+on:
+  workflow_dispatch:
+  pull_request:
+    branches:
+      - "**"
+
+permissions:
+  contents: write
+  pull-requests: write
+  issues: write
+
+jobs:
+  release:
+    name: Release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: "lts/*"
+
+      - name: Install dependencies
+        run: npm clean-install
+
+      - name: Verify the integrity of provenance attestations and registry signatures
+        run: npm audit signatures
+
+      - name: Check semantic versioning
+        id: semantic-release
+        if: github.event_name == 'pull_request'
+        run: |
+          GITHUB_REF=${{ github.head_ref }}
+          echo "Running semantic-release for branch: $GITHUB_REF"
+          npx semantic-release --no-ci --dry-run --plugins @semantic-release/commit-analyzer,@semantic-release/release-notes-generator --branches ${{ github.head_ref }} > output.txt
+          cat output.txt
+          OUTPUT=$(cat output.txt | base64 -w 0)
+          echo "releaseNote=$OUTPUT" >> "$GITHUB_OUTPUT"
+
+      - name: Report semantic versioning
+        uses: actions/github-script@v7
+        if: ${{ steps.semantic-release.outputs.releaseNote != '' }}
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            console.log('Starting semantic release report generation...');
+
+            /**
+             * 1. Decode the semantic-release output from base64.
+             */
+            const semanticReleaseOutput = Buffer.from(
+              '${{ steps.semantic-release.outputs.releaseNote }}',
+              'base64'
+            ).toString('utf8');
+            console.log('Decoded semantic release output');
+
+            /**
+             * 2. Get version information
+             */
+            const versionMatch = semanticReleaseOutput.match(/The next release version is (\d+\.\d+\.\d+)/);
+            const newVersion = versionMatch ? versionMatch[1] : 'Unknown Version';
+            const currentVersionMatch = semanticReleaseOutput.match(/Found git tag ([\d\.]+) associated with version/);
+            const currentVersion = currentVersionMatch ? currentVersionMatch[1] : 'Unknown';
+            console.log(`Version transition: ${currentVersion} → ${newVersion}`);
+
+            /**
+             * 3. Get changelog content
+             */
+            let changelogContent = '';
+            try {
+              const changelog = await github.rest.repos.getContent({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                path: 'CHANGELOG.md',
+                ref: context.payload.pull_request.base.ref
+              });
+
+              changelogContent = Buffer.from(changelog.data.content, 'base64').toString('utf8');
+              console.log('Successfully read CHANGELOG.md');
+            } catch (error) {
+              console.log('Error reading CHANGELOG.md:', error.message);
+              changelogContent = '';
+            }
+
+            /**
+             * 4. Extract the new release notes
+             */
+            const notesMatch = semanticReleaseOutput.match(/# [0-9]+\.[0-9]+\.[0-9]+[\s\S]+?(?=\[[0-9:]+\s[AP]M\]|$)/);
+            const newReleaseNotes = notesMatch ? notesMatch[0] : '';
+            console.log('Extracted new release notes');
+
+            /**
+             * 5. Parse the new release notes into sections
+             */
+            const sections = {
+              'Current': {
+                'Features': [],
+                'Bug Fixes': [],
+                'BREAKING CHANGES': [],
+                'Security Updates': [],
+                'Documentation': []
+              }
+            };
+
+            // Process new release notes
+            const currentLines = newReleaseNotes.split('\n');
+            let currentSection = null;
+
+            for (const line of currentLines) {
+              const trimmedLine = line.trim();
+
+              if (trimmedLine.startsWith('### ')) {
+                currentSection = trimmedLine.replace('### ', '');
+                console.log('Found section:', currentSection);
+                continue;
+              }
+
+              if (trimmedLine.startsWith('*')) {
+                if (trimmedLine.includes('feat!:')) {
+                  // Feature with breaking change goes to both sections
+                  const feature = trimmedLine.replace('*', '').trim();
+                  sections.Current['Features'].push(feature);
+                  console.log('Added breaking feature:', feature);
+                } else if (currentSection && sections.Current[currentSection]) {
+                  sections.Current[currentSection].push(trimmedLine);
+                  console.log(`Added item to ${currentSection}:`, trimmedLine);
+                }
+              }
+            }
+
+            /**
+             * 6. Build the markdown content
+             */
+            console.log('Building markdown content...');
+            let content = [];
+
+            // Top banner
+            content.push('# 🚀 **Release Management Report** 🚀');
+            content.push('');
+            content.push(`**Version Transition:** \`${currentVersion}\` → \`${newVersion}\` (Generated on: ${new Date().toISOString().split('T')[0]})`);
+            content.push(`**Pull Request:** #${context.issue.number}`);
+            content.push('');
+            content.push('> This report was automatically generated by [semantic-release](https://github.com/semantic-release/semantic-release).');
+            content.push('');
+            content.push('---');
+            content.push('');
+
+            // Upcoming Release Section
+            content.push('## 📦 Upcoming Release');
+            content.push('');
+            content.push('<details open>');
+            content.push('<summary><strong>Changes in this release</strong></summary>');
+            content.push('');
+
+            // Breaking Changes Section
+            if (sections.Current['BREAKING CHANGES'] && sections.Current['BREAKING CHANGES'].length > 0) {
+              content.push('### 💥 Breaking Changes');
+              sections.Current['BREAKING CHANGES'].forEach(change => {
+                content.push(change);
+              });
+              content.push('');
+            }
+
+            // Features Section
+            if (sections.Current['Features'] && sections.Current['Features'].length > 0) {
+              content.push('### ✨ Features');
+              sections.Current['Features'].forEach(feature => {
+                content.push(feature);
+              });
+              content.push('');
+            }
+
+            // Bug Fixes Section
+            if (sections.Current['Bug Fixes'] && sections.Current['Bug Fixes'].length > 0) {
+              content.push('### 🐞 Bug Fixes');
+              sections.Current['Bug Fixes'].forEach(fix => {
+                content.push(fix);
+              });
+              content.push('');
+            }
+
+            content.push('</details>');
+            content.push('');
+
+            // Previous Releases Section
+            if (changelogContent) {
+              content.push('## 📜 Release History');
+              content.push('');
+              content.push('<details>');
+              content.push('<summary><strong>View previous releases</strong></summary>');
+              content.push('');
+              content.push(changelogContent);
+              content.push('</details>');
+              content.push('');
+            }
+
+            content.push('---');
+            content.push('');
+            content.push('**Thanks for reviewing!**\n');
+            content.push('_*Mechanicode Ops Team*_');
+
+            // Create final content
+            const finalContent = content.join('\n');
+            console.log('Generated content successfully');
+
+            /**
+             * 7. Handle comments
+             */
+            console.log('Managing PR comments...');
+            const comments = await github.rest.issues.listComments({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo
+            });
+
+            const commentsToDelete = comments.data.filter(comment =>
+              comment.body.includes('Release Management Report')
+            );
+            console.log(`Found ${commentsToDelete.length} old comments to delete`);
+
+            await Promise.all(
+              commentsToDelete.map(comment =>
+                github.rest.issues.deleteComment({
+                  comment_id: comment.id,
+                  owner: context.repo.owner,
+                  repo: context.repo.repo
+                })
+              )
+            );
+
+            console.log('Creating new comment...');
+            await github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: finalContent
+            });
+
+            console.log('Successfully completed semantic release reporting');

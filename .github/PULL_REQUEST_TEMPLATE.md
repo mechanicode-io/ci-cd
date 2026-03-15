@@ -1,8 +1,4 @@
-# CI-CD
-
-Sandbox for CI/CD Frameworks
-
-## Release Management
+# Notes
 
 We utilize [Conventional Commits](https://www.conventionalcommits.org/) messages and automated tagging via [Semantic Versioning](https://semver.org/) for managing helm chart releases.
 
@@ -21,10 +17,3 @@ When making changes that affect the helm chart, use these prefixes:
     feat!: change default authentication method
     BREAKING CHANGE: Authentication now requires different configuration format
     ```
-
-## Local Development
-
-```sh
-pip install -r requirements.txt
-pre-commit install --hook-type commit-msg
-```
