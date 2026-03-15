@@ -1,0 +1,22 @@
+name: Validate PR Title
+on:
+  pull_request:
+    types: [opened, edited, synchronize, reopened]
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check conventional commit format
+        env:
+          PR_TITLE: ${{ github.event.pull_request.title }}
+        run: |
+          if ! echo "$PR_TITLE" | grep -qP '^(feat|fix|chore|docs|refactor|test|style|perf|ci|build|revert)(\(.+\))?(!)?: .+'; then
+            echo "❌ PR title does not follow conventional commit format."
+            echo "   Got: $PR_TITLE"
+            echo ""
+            echo "   Expected format: <type>(<optional scope>): <description>"
+            echo "   Example: feat(auth): add OAuth2 login"
+            exit 1
+          fi
+          echo "✅ PR title is valid: $PR_TITLE"

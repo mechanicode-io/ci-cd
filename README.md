@@ -2,6 +2,27 @@
 
 Sandbox for CI/CD Frameworks
 
+## CI/CD Flow
+
+```mermaid
+flowchart TD
+    A([Developer]) -->|conventional commit| B[Push Branch / Open PR]
+
+    B --> C[tagging-check.yml]
+    C --> D[semantic-release dry-run]
+    D -->|no release triggered| E[No comment posted]
+    D -->|release detected| F[Org bot posts\nRelease Management Report\non PR]
+
+    B --> G{Merge to main?}
+    G -->|No| B
+    G -->|Yes| H[release.yml]
+
+    H --> I[semantic-release]
+    I --> J[Org bot commits\nCHANGELOG.md + package.json\nand creates git tag]
+    J --> K[Build Dockerfile]
+    K --> L[Push to ghcr.io/org/ci-cd\n:version + :latest]
+```
+
 ## Release Management
 
 We utilize [Conventional Commits](https://www.conventionalcommits.org/) messages and automated tagging via [Semantic Versioning](https://semver.org/) for managing helm chart releases.
