@@ -1,3 +1,18 @@
+# [2.0.0](https://github.com/mechanicode-io/ci-cd/compare/1.0.2...2.0.0) (2026-03-17)
+
+
+### Bug Fixes
+
+* add pr title linting for conventional commits ([#5](https://github.com/mechanicode-io/ci-cd/issues/5)) ([b0b7954](https://github.com/mechanicode-io/ci-cd/commit/b0b795477e3d26d7429b14dd1a205e0e53b8eff6))
+* added new images to the repo ([#6](https://github.com/mechanicode-io/ci-cd/issues/6)) ([d01ab27](https://github.com/mechanicode-io/ci-cd/commit/d01ab2788de2ffc819924e63e18fdb30ca8036bf))
+
+
+### BREAKING CHANGES
+
+* Authentication now requires different configuration
+format
+    ```
+
 ## [1.0.2](https://github.com/mechanicode-io/ci-cd/compare/1.0.1...1.0.2) (2026-03-15)
 
 
