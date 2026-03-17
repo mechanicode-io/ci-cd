@@ -1,3 +1,10 @@
+## [2.0.1](https://github.com/mechanicode-io/ci-cd/compare/2.0.0...2.0.1) (2026-03-17)
+
+
+### Bug Fixes
+
+* update pipeline img ([#7](https://github.com/mechanicode-io/ci-cd/issues/7)) ([054673c](https://github.com/mechanicode-io/ci-cd/commit/054673cb029353fdaa4a4dc687c01936726f647e))
+
 # [2.0.0](https://github.com/mechanicode-io/ci-cd/compare/1.0.2...2.0.0) (2026-03-17)
 
 
